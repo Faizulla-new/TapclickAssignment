@@ -138,11 +138,9 @@ startReadingData();
 
 
  function csvtojsonFiledata (source,mappingdata) { 
-  console.log('vggh');
       app.get("/", function(req, res) {
       res.send(source);
   });
-  console.log('vggh');
 
   var mapping = mappingdata.map( obj => {
     return _.transform(obj,  (result, val, key) => {
