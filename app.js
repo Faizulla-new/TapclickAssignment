@@ -122,8 +122,13 @@ async function startReadingData() {
   });
 
   const finalData = await Promise.all(data);
+
   const impfinaldata = finalData.flat(1);
-  csvtojsonFiledata(impfinaldata);
+  const json =  csvtojson().fromFile('./mapping/Yashi_Advertisers.csv');
+  const mappingdata  = await Promise.resolve(json) ;
+
+  // console.log(impfinaldata.length, mappingdata);
+  csvtojsonFiledata(impfinaldata, mappingdata);
 }
 
 startReadingData();
@@ -132,21 +137,28 @@ startReadingData();
 
 
 
- function csvtojsonFiledata (source) { 
-
+ function csvtojsonFiledata (source,mappingdata) { 
+  console.log('vggh');
       app.get("/", function(req, res) {
       res.send(source);
   });
-  // console.log();
+  console.log('vggh');
 
-  var alldata = source.map( obj => {
+  var mapping = mappingdata.map( obj => {
     return _.transform(obj,  (result, val, key) => {
       result[key.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())] = val;
      });
    })
 
 
+  var sourcedata = source.map( obj => {
+    return _.transform(obj,  (result, val, key) => {
+      result[key.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase())] = val;
+     });
+   })
 
+
+   var alldata = sourcedata.filter(item => mapping.find(i => i.advertiserId == item.advertiserId));
 
 
    queryPromise = () =>{
@@ -193,11 +205,23 @@ queryPromise2 = () =>{
   return new Promise((resolve, reject)=>{
 
     var query2 = "";
+
+    // var lol = [{id:9656},{id:8876},{id:9518},{id:9528},{id:8334}]
   
     const campArray = alldata.map((_arrayElement) => Object.assign({}, _arrayElement));  
 
+    // const bobo = campArray.filter(item => lol.find(i => i.id == item.advertiserId));
+
+
+    // var cape = bobo.filter((arr, index, self) =>
+    // index === self.findIndex((t) => (t["campaignId"] === arr["campaignId"] && t["date"] === arr["date"] )))
+
+    // console.log(cape.length,bobo.length, 'bobo length');
+
+
+
   let result = campArray.reduce((acc, curr) => {
-    let obj = acc.find(item => item.campaignId === curr.campaignId);
+    let obj = acc.find(item => ((item.campaignId === curr.campaignId)  && (item.date === curr.date)) );
     if(obj) {
       obj.impressions = Number(obj.impressions) + Number(curr.impressions);
       obj.clicks = Number(obj.clicks) + Number(curr.clicks);
@@ -257,7 +281,7 @@ queryPromise4 = () =>{
     const orderArray = alldata.map((_arrayElement) => Object.assign({}, _arrayElement));  
     
 let orderData = orderArray.reduce((acc, curr) => {
-  let obj = acc.find(item => item.orderId === curr.orderId);
+  let obj = acc.find(item => ((item.orderId === curr.orderId)  && (item.date === curr.date)));
   if(obj) {
     obj.impressions = Number(obj.impressions) + Number(curr.impressions);
     obj.clicks = Number(obj.clicks) + Number(curr.clicks);
